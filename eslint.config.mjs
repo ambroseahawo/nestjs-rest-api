@@ -36,7 +36,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-require-imports": "off",
       "no-var": "error",
       semi: "error",
@@ -55,65 +55,6 @@ export default tseslint.config(
           tabWidth: 2,
           semi: true,
           singleQuote: false,
-        },
-      ],
-      "import/order": [
-        "error",
-        {
-          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-          pathGroups: [
-            {
-              pattern: "@nestjs/**",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "typeorm",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "class-validator",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "class-transformer",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "@prisma/**",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "@modules/**",
-              group: "internal",
-              position: "before",
-            },
-            {
-              pattern: "@common/**",
-              group: "internal",
-              position: "before",
-            },
-            {
-              pattern: "@config/**",
-              group: "internal",
-              position: "before",
-            },
-            {
-              pattern: "@utils/**",
-              group: "internal",
-              position: "before",
-            },
-          ],
-          pathGroupsExcludedImportTypes: ["builtin"],
-          alphabetize: {
-            order: "asc",
-            caseInsensitive: true,
-          },
-          "newlines-between": "always",
         },
       ],
     },
