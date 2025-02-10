@@ -6,7 +6,7 @@ import { AppModule } from "@src/app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT as string);
 }
 bootstrap().catch((err) => {
   console.log("Error during app bootstrap: ", err);

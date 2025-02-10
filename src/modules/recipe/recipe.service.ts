@@ -1,40 +1,35 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { v4 } from "uuid";
+import { InjectRepository } from "@nestjs/typeorm";
 
 import { RecipeDto } from "@modules/recipe/dto/recipe.dto";
 import { Recipe } from "@modules/recipe/entity/recipe";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class RecipeService {
-  private _recipes: Recipe[] = [];
+  constructor(@InjectRepository(Recipe) private recipeRepository: Repository<Recipe>) {}
 
   async getRecipes(): Promise<Recipe[]> {
-    return this._recipes;
+    return this.recipeRepository.find();
   }
 
   async createRecipe(recipe: RecipeDto): Promise<void> {
-    const recipeEntity = { ...recipe, id: v4() };
-    this._recipes.push(recipeEntity);
+    await this.recipeRepository.save({ ...recipe });
   }
 
   async getRecipe(id: string): Promise<Recipe> {
-    const recipe = this._recipes.find((r) => r.id === id);
+    const recipe = await this.recipeRepository.findOne({ where: { id } });
     if (!recipe) {
-      throw new HttpException("NotFound", HttpStatus.NOT_FOUND);
+      throw new HttpException("No entity found", HttpStatus.NOT_FOUND);
     }
     return recipe;
   }
 
   async updateDescription(id: string, description: string): Promise<void> {
-    const recipeIndex = this._recipes.findIndex((r) => r.id === id);
-    console.log(`recipeIndex => ${recipeIndex}`);
-    if (recipeIndex < 0) {
-      throw new HttpException("NotFound", HttpStatus.NOT_FOUND);
-    }
-    this._recipes[recipeIndex] = { ...this._recipes[recipeIndex], description };
+    await this.recipeRepository.update({ id }, { description });
   }
 
   async deleteRecipe(id: string): Promise<void> {
-    this._recipes = this._recipes.filter((r) => r.id !== id);
+    await this.recipeRepository.delete({ id });
   }
 }
