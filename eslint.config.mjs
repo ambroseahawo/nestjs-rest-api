@@ -42,6 +42,7 @@ export default tseslint.config(
       semi: "error",
       "max-len": ["error", { code: 105 }],
       indent: ["error", 2, { SwitchCase: 1 }],
+      "@typescript-eslint/indent": ["error", 2],
       "no-multi-spaces": "error",
       "space-in-parens": "error",
       "no-multiple-empty-lines": "error",
