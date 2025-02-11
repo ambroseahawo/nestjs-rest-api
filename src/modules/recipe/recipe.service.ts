@@ -7,9 +7,13 @@ import { Repository } from "typeorm";
 
 @Injectable()
 export class RecipeService {
-  constructor(@InjectRepository(Recipe) private recipeRepository: Repository<Recipe>) {}
+  constructor(
+    @InjectRepository(Recipe) private recipeRepository: Repository<Recipe>,
+    // private configService: ConfigService,
+  ) {}
 
   async getRecipes(): Promise<Recipe[]> {
+    // console.log(`value from env => ${this.configService.get<string>("APP_PORT")}`);
     return this.recipeRepository.find();
   }
 
