@@ -80,7 +80,7 @@ export class InitialSchema1739253188790 implements MigrationInterface {
     const table = await queryRunner.getTable("ingredient");
     if (!table) return;
 
-    const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.indexOf("recipeId"));
+    const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.indexOf("recipeId") !== -1);
     if (foreignKey) {
       await queryRunner.dropForeignKey("ingredient", foreignKey);
     }
