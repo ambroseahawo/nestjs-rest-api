@@ -1,5 +1,7 @@
-import { Unit } from "@modules/recipe/dto/recipe.dto";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+
+import { User } from "@modules/auth/entity/user";
+import { Unit } from "@modules/recipe/dto/recipe.dto";
 
 @Entity({ name: "recipe" })
 export class Recipe {
@@ -14,6 +16,9 @@ export class Recipe {
     eager: true,
   })
   ingredients: Ingredient[];
+
+  @ManyToOne(() => User, (user) => user.recipes, { onDelete: "CASCADE" })
+  user: User;
 }
 
 @Entity({ name: "ingredient" })
