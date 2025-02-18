@@ -4,6 +4,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { validate } from "@config/env.validation";
 
+import { AuthModule } from "@modules/auth/auth.module";
 import { Ingredient, Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeModule } from "@modules/recipe/recipe.module";
 
@@ -26,6 +27,7 @@ import { RecipeModule } from "@modules/recipe/recipe.module";
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],
