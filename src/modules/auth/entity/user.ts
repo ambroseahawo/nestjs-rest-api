@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 import { Recipe } from "@modules/recipe/entity/recipe";
 
@@ -9,7 +9,10 @@ export enum UserRole {
 
 @Entity({ name: "user" })
 export class User {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  @Column({ unique: true })
   email: string;
 
   @Column({ nullable: false })

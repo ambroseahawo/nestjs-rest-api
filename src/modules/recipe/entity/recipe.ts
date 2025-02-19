@@ -11,6 +11,9 @@ export class Recipe {
   @Column()
   description: string;
 
+  @Column({ type: "uuid" })
+  userId: string;
+
   @OneToMany(() => Ingredient, (ingredient) => ingredient.recipe, {
     cascade: true,
     eager: true,

@@ -34,24 +34,24 @@ export class AuthSchema1739885265251 implements MigrationInterface {
     }
 
     const recipeTable = await queryRunner.getTable("recipe");
-    if (recipeTable && !recipeTable.columns.find((col) => col.name === "userEmail")) {
+    if (recipeTable && !recipeTable.columns.find((col) => col.name === "userId")) {
       await queryRunner.addColumn(
         "recipe",
         new TableColumn({
-          name: "userEmail",
-          type: "varchar",
+          name: "userId",
+          type: "uuid",
           isNullable: false,
         }),
       );
     }
 
     const foreignKeys = recipeTable?.foreignKeys || [];
-    if (!foreignKeys.find((fk) => fk.columnNames.includes("userEmail"))) {
+    if (!foreignKeys.find((fk) => fk.columnNames.includes("userId"))) {
       await queryRunner.createForeignKey(
         "recipe",
         new TableForeignKey({
-          columnNames: ["userEmail"],
-          referencedColumnNames: ["email"],
+          columnNames: ["userId"],
+          referencedColumnNames: ["id"],
           referencedTableName: "user",
           onDelete: "CASCADE",
         }),
@@ -62,13 +62,13 @@ export class AuthSchema1739885265251 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable("recipe");
     if (table) {
-      const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.includes("userEmail"));
+      const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.includes("userId"));
       if (foreignKey) {
         await queryRunner.dropForeignKey("recipe", foreignKey);
       }
 
-      if (table.columns.find((col) => col.name === "userEmail")) {
-        await queryRunner.dropColumn("recipe", "userEmail");
+      if (table.columns.find((col) => col.name === "userId")) {
+        await queryRunner.dropColumn("recipe", "userId");
       }
     }
 
