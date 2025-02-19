@@ -13,7 +13,7 @@ import {
 
 export enum Unit {
   MILLILITERS = "milliliters",
-  LITERS = "LITERS",
+  LITRES = "litres",
   GRAMS = "grams",
   KILOGRAMS = "kilograms",
   SPOONS = "spoons",
