@@ -81,7 +81,6 @@ export class RecipeService {
       await queryRunner.manager.update(Recipe, id, { description });
       await queryRunner.commitTransaction();
     } catch (error) {
-      console.log(`error => ${error}`);
       await queryRunner.rollbackTransaction();
       throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
     } finally {
@@ -106,7 +105,27 @@ export class RecipeService {
   //   }
   // }
 
+  // async deleteRecipe(id: string): Promise<void> {
+  //   await this.recipeRepository.delete({ id });
+  // }
+
   async deleteRecipe(id: string): Promise<void> {
-    await this.recipeRepository.delete({ id });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.findOneOrFail(Recipe, {
+        where: { id },
+        relations: ["user"],
+      });
+      await queryRunner.manager.remove(Recipe, recipe);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

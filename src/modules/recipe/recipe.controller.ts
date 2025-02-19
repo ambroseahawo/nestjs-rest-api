@@ -15,10 +15,10 @@ import { Ownership } from "@modules/auth/decorators/ownership";
 import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
 import { AccessTokenGuard } from "@modules/auth/guard/access-token.guard";
-import { OwnershipGuard, RoleGuard } from "@modules/auth/guard/authorization.guard";
+import { OwnershipGuard } from "@modules/auth/guard/authorization.guard";
+import { Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeService } from "@modules/recipe/recipe.service";
 import { RecipeDto, UpdateDescriptionDto } from "./dto/recipe.dto";
-import { Recipe } from "./entity/recipe";
 
 @Controller("recipe")
 export class RecipeController {
@@ -56,7 +56,8 @@ export class RecipeController {
   }
 
   @Role(UserRole.ADMIN)
-  @UseGuards(AccessTokenGuard, RoleGuard)
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
   @Delete("/:id")
   async deleteRecipe(@Param("id", new ParseUUIDPipe()) id: string) {
     return await this.recipeService.deleteRecipe(id);
