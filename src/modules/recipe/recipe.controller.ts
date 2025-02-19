@@ -56,6 +56,14 @@ export class RecipeController {
   @Role(UserRole.ADMIN)
   @Ownership(Recipe, "user")
   @UseGuards(AccessTokenGuard, OwnershipGuard)
+  @Patch("/:id")
+  async upsertRecipe(@Body() recipeDto: RecipeDto, @Param("id", new ParseUUIDPipe()) id: string) {
+    return await this.recipeService.upsertRecipe(id, recipeDto);
+  }
+
+  @Role(UserRole.ADMIN)
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
   @Delete("/:id")
   async deleteRecipe(@Param("id", new ParseUUIDPipe()) id: string) {
     return await this.recipeService.deleteRecipe(id);

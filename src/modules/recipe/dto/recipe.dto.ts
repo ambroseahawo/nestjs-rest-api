@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   MinLength,
@@ -35,6 +36,10 @@ export class RecipeDto {
 }
 
 export class IngredientDto {
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @IsNotEmpty()
   @IsString()
   name: string;
