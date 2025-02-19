@@ -1,11 +1,16 @@
-import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
 import { Match } from "@utils/match.decorator";
+import { UserRole } from "../entity/user";
 
 export class RegisterDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 
   @IsNotEmpty()
   @IsString()

@@ -33,7 +33,7 @@ export class AuthService {
     await this.userRepository.save({
       email: registerDto.email,
       password: hashedPassword,
-      role: UserRole.USER,
+      role: registerDto.role ?? UserRole.USER,
     });
   }
 
