@@ -11,12 +11,14 @@ import {
   UseGuards,
 } from "@nestjs/common";
 
+import { Ownership } from "@modules/auth/decorators/ownership";
 import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
 import { AccessTokenGuard } from "@modules/auth/guard/access-token.guard";
-import { RoleGuard } from "@modules/auth/guard/authorization.guard";
+import { OwnershipGuard, RoleGuard } from "@modules/auth/guard/authorization.guard";
 import { RecipeService } from "@modules/recipe/recipe.service";
 import { RecipeDto, UpdateDescriptionDto } from "./dto/recipe.dto";
+import { Recipe } from "./entity/recipe";
 
 @Controller("recipe")
 export class RecipeController {
@@ -30,6 +32,7 @@ export class RecipeController {
   @UseGuards(AccessTokenGuard)
   @Post()
   async createRecipe(@Body() recipeDto: RecipeDto, @Request() req) {
+    console.log(`req-user ${JSON.stringify(req.user)}`);
     const { sub } = req.user;
     return await this.recipeService.createRecipe(recipeDto, sub);
   }
@@ -39,15 +42,17 @@ export class RecipeController {
     return await this.recipeService.getRecipe(id);
   }
 
-  @UseGuards(AccessTokenGuard)
-  @Patch("/:id")
-  async updateDescription(
+  @Role(UserRole.ADMIN)
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
+  @Patch("/update-description/:id")
+  async updateRecipeDescription(
     @Body() { description }: UpdateDescriptionDto,
     @Param("id", new ParseUUIDPipe()) id: string,
     @Request() req,
   ) {
     const { sub } = req.user;
-    return await this.recipeService.updateDescription(id, description, sub);
+    return await this.recipeService.updateRecipeDescription(id, description, sub);
   }
 
   @Role(UserRole.ADMIN)
