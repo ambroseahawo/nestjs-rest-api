@@ -58,7 +58,7 @@ export class RecipeService {
     }
   }
 
-  async updateRecipeDescription(id: string, description: string, userEmail: string): Promise<void> {
+  async updateRecipeDescription(id: string, description: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

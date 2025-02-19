@@ -49,10 +49,8 @@ export class RecipeController {
   async updateRecipeDescription(
     @Body() { description }: UpdateDescriptionDto,
     @Param("id", new ParseUUIDPipe()) id: string,
-    @Request() req,
   ) {
-    const { sub } = req.user;
-    return await this.recipeService.updateRecipeDescription(id, description, sub);
+    return await this.recipeService.updateRecipeDescription(id, description);
   }
 
   @Role(UserRole.ADMIN)
