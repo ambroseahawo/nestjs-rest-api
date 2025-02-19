@@ -33,44 +33,48 @@ export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Check if user has required role
-    const hasRoleAccess = await super.canActivate(context);
-    if (hasRoleAccess) {
-      return true;
-    }
+    try {
+      const request = context.switchToHttp().getRequest();
+      const { user } = request;
+      const resourceId = request.params.id;
 
-    const request = context.switchToHttp().getRequest();
-    const { user } = request;
-    const resourceId = request.params.id;
+      if (!user || !resourceId) {
+        throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
+      }
 
-    if (!user || !resourceId) {
+      // Get entity and ownership field from metadata
+      const ownershipData = this.reflector.get<{ entity: any; userField: string }>(
+        OWNERSHIP_KEY,
+        context.getHandler(),
+      );
+
+      if (!ownershipData) {
+        throw new HttpException("Ownership metadata missing", HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      const { entity, userField } = ownershipData;
+      const repository: Repository<T> = this.dataSource.getRepository(entity);
+
+      // Fetch resource from DB
+      const resource = await repository.findOne({
+        where: { id: resourceId } as any,
+        relations: [userField],
+      });
+
+      if (!resource) {
+        throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
+      }
+
+      // Check if user has required role
+      const hasRoleAccess = await super.canActivate(context);
+      if (hasRoleAccess) {
+        return true;
+      }
+
+      // Allow if user owns the resource
+      return resource[userField].email === user.sub;
+    } catch (error) {
       throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
     }
-
-    // Get entity and ownership field from metadata
-    const ownershipData = this.reflector.get<{ entity: any; userField: string }>(
-      OWNERSHIP_KEY,
-      context.getHandler(),
-    );
-
-    if (!ownershipData) {
-      throw new HttpException("Ownership metadata missing", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    const { entity, userField } = ownershipData;
-    const repository: Repository<T> = this.dataSource.getRepository(entity);
-
-    // Fetch resource from DB
-    const resource = await repository.findOne({
-      where: { id: resourceId } as any,
-      relations: [userField],
-    });
-
-    if (!resource) {
-      throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
-    }
-
-    // Allow if user owns the resource
-    return resource[userField].email === user.sub;
   }
 }
