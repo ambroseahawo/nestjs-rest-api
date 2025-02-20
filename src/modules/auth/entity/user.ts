@@ -1,4 +1,12 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 import { Recipe } from "@modules/recipe/entity/recipe";
 
@@ -15,15 +23,21 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: false, select: false })
   password: string;
 
   @Column({ type: "varchar", default: UserRole.USER, name: "userRole" })
   role: UserRole;
 
-  @OneToMany(() => Recipe, (recipe) => recipe.user, {
-    cascade: true,
-    eager: true,
-  })
+  @OneToMany(() => Recipe, (recipe) => recipe.user)
   recipes: Recipe[];
+
+  @CreateDateColumn({ type: "timestamp" })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: "timestamp" })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ nullable: true, select: false })
+  deletedAt?: Date;
 }

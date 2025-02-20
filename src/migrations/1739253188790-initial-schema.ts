@@ -23,6 +23,17 @@ export class InitialSchema1739253188790 implements MigrationInterface {
               type: "varchar",
               isNullable: false,
             },
+            {
+              name: "createdAt",
+              type: "timestamp",
+              default: "CURRENT_TIMESTAMP",
+            },
+            {
+              name: "updatedAt",
+              type: "timestamp",
+              default: "CURRENT_TIMESTAMP",
+              onUpdate: "CURRENT_TIMESTAMP",
+            },
           ],
         }),
       );
@@ -49,7 +60,7 @@ export class InitialSchema1739253188790 implements MigrationInterface {
             },
             {
               name: "unit",
-              type: "varchar",
+              type: "enum",
               isNullable: false,
               enum: [...Object.values(Unit)],
             },
@@ -57,6 +68,17 @@ export class InitialSchema1739253188790 implements MigrationInterface {
               name: "quantity",
               type: "integer",
               isNullable: false,
+            },
+            {
+              name: "createdAt",
+              type: "timestamp",
+              default: "CURRENT_TIMESTAMP",
+            },
+            {
+              name: "updatedAt",
+              type: "timestamp",
+              default: "CURRENT_TIMESTAMP",
+              onUpdate: "CURRENT_TIMESTAMP",
             },
           ],
         }),
@@ -82,7 +104,7 @@ export class InitialSchema1739253188790 implements MigrationInterface {
           columnNames: ["recipeId"],
           referencedColumnNames: ["id"],
           referencedTableName: "recipe",
-          onDelete: "CASCADE",
+          onDelete: "RESTRICT",
         }),
       );
     }
@@ -100,6 +122,11 @@ export class InitialSchema1739253188790 implements MigrationInterface {
         await queryRunner.dropColumn("ingredient", "recipeId");
       }
 
+      // await queryRunner.dropTable("ingredient");
+    }
+
+    const hasIngredientTable = await queryRunner.hasTable("ingredient");
+    if (hasIngredientTable) {
       await queryRunner.dropTable("ingredient");
     }
 
