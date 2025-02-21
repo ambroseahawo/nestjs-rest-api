@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { validate } from "@config/env.validation";
 
 import { AuthModule } from "@modules/auth/auth.module";
+import { RefreshToken } from "@modules/auth/entity/refreshToken";
 import { User } from "@modules/auth/entity/user";
 import { Ingredient, Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeModule } from "@modules/recipe/recipe.module";
@@ -22,7 +23,7 @@ import { RecipeModule } from "@modules/recipe/recipe.module";
         username: configService.get<string>("DB_USERNAME"),
         password: configService.get<string>("DB_PASSWORD"),
         database: configService.get<string>("DB_NAME"),
-        entities: [Recipe, Ingredient, User],
+        entities: [Recipe, Ingredient, User, RefreshToken],
         synchronize: configService.get<boolean>("DB_SYNCHRONIZATION"),
         logging: configService.get<boolean>("DB_LOGGING"),
       }),
