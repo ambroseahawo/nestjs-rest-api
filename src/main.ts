@@ -2,8 +2,9 @@ require("module-alias/register");
 
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { NestFactory } from "@nestjs/core";
+import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 
+import { AllExceptionsFilter } from "@common/global-filters/all-exceptions.filter";
 import { AppModule } from "@src/app.module";
 
 async function bootstrap() {
@@ -13,6 +14,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<string>("APP_PORT");
+
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost, configService));
   await app.listen(port as string);
 }
 bootstrap().catch((err) => {

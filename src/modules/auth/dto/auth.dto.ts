@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
-import { Match } from "@utils/match.decorator";
+import { Match } from "@/src/common/utils/match.decorator";
 import { UserRole } from "../entity/user";
 
 export class RegisterDto {

@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -7,8 +7,9 @@ import { DataSource, MoreThan, QueryRunner, Repository } from "typeorm";
 import { compare, hash } from "bcrypt";
 
 import { LoginDto, RegisterDto } from "@modules/auth/dto/auth.dto";
+import { RefreshToken } from "@modules/auth/entity/refreshToken";
 import { User, UserRole } from "@modules/auth/entity/user";
-import { RefreshToken } from "./entity/refreshToken";
+import { InvalidCredentialsException } from "@modules/auth/exceptions/invalid-credentials.exception";
 
 export interface JwtTokens {
   accessToken: string;
@@ -28,7 +29,7 @@ export class AuthService {
   async createUser(registerDto: RegisterDto) {
     const existingUser = await this.userRepository.findOne({ where: { email: registerDto.email } });
     if (existingUser) {
-      throw new HttpException("Email already registered", 400);
+      throw new ConflictException("Email already registered");
     }
 
     const hashedPassword = await this.hashPassword(registerDto.password);
@@ -46,15 +47,14 @@ export class AuthService {
       where: { email },
       select: ["id", "email", "password"],
     });
-    console.log(`user => ${JSON.stringify(user)}`);
 
     if (!user) {
-      throw new HttpException("Invalid credentials", 400);
+      throw new InvalidCredentialsException();
     }
 
     const validPassword = await compare(password, user.password);
     if (!validPassword) {
-      throw new HttpException("Invalid credentials", 400);
+      throw new InvalidCredentialsException();
     }
 
     return this.getTokens(user);
@@ -78,7 +78,7 @@ export class AuthService {
         },
       });
       if (!validTokens.length) {
-        throw new HttpException("Invalid credentials", 400);
+        throw new InvalidCredentialsException();
       }
 
       // find matching refresh token
@@ -90,7 +90,7 @@ export class AuthService {
       ).then((results) => results.find((r) => r.isMatch)?.token);
 
       if (!matchedToken) {
-        throw new HttpException("Invalid credentials", 400);
+        throw new InvalidCredentialsException();
       }
 
       const user = await this.userRepository.findOneOrFail({ where: { id: payload.sub } });
@@ -105,7 +105,7 @@ export class AuthService {
       return tokens;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new HttpException("Invalid credentials", 400);
+      throw new BadRequestException();
     } finally {
       await queryRunner.release();
     }

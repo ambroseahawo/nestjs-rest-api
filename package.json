@@ -98,6 +98,7 @@
     "@src": "src",
     "@modules": "src/modules",
     "@config": "src/config",
-    "@utils/*": "src/utils/*"
+    "@utils/*": "src/utils/*",
+    "@common/*": "src/common/*"
   }
 }
