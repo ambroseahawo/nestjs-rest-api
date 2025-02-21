@@ -192,8 +192,9 @@ export class RecipeService {
       await queryRunner.manager.remove(Recipe, recipe);
       await queryRunner.commitTransaction();
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
-      throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
+      throw new HttpException("Bad Request", HttpStatus.NOT_FOUND);
     } finally {
       await queryRunner.release();
     }

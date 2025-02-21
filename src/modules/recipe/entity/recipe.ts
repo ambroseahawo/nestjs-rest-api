@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -34,8 +33,8 @@ export class Recipe {
   @UpdateDateColumn({ type: "timestamp" })
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true, select: false })
-  deletedAt?: Date;
+  // @DeleteDateColumn({ nullable: true, select: false })
+  // deletedAt?: Date;
 }
 
 @Entity({ name: "ingredient" })
@@ -61,8 +60,8 @@ export class Ingredient {
   @UpdateDateColumn({ type: "timestamp" })
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true, select: false })
-  deletedAt?: Date;
+  // @DeleteDateColumn({ nullable: true, select: false })
+  // deletedAt?: Date;
 }
 
 // onDelete must be on the @ManyToOne side because:
