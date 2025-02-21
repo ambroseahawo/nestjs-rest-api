@@ -4,11 +4,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { AuthController } from "@modules/auth/auth.controller";
 import { AuthService } from "@modules/auth/auth.service";
+import { RefreshToken } from "@modules/auth/entity/refreshToken";
 import { User } from "@modules/auth/entity/user";
 import { AccessTokenStrategy } from "@modules/auth/passport-strategy/access-token.strategy";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), JwtModule.register({})],
+  imports: [TypeOrmModule.forFeature([User, RefreshToken]), JwtModule.register({})],
   exports: [TypeOrmModule],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenStrategy],
