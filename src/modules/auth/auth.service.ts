@@ -2,12 +2,13 @@ import { HttpException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, MoreThan, QueryRunner, Repository } from "typeorm";
 
 import { compare, hash } from "bcrypt";
 
 import { LoginDto, RegisterDto } from "@modules/auth/dto/auth.dto";
 import { User, UserRole } from "@modules/auth/entity/user";
+import { RefreshToken } from "./entity/refreshToken";
 
 export interface JwtTokens {
   accessToken: string;
@@ -18,8 +19,10 @@ export interface JwtTokens {
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    @InjectRepository(RefreshToken) private refreshTokenRepository: Repository<RefreshToken>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createUser(registerDto: RegisterDto) {
@@ -39,7 +42,11 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<JwtTokens> {
     const { email, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ["id", "email", "password"],
+    });
+    console.log(`user => ${JSON.stringify(user)}`);
 
     if (!user) {
       throw new HttpException("Invalid credentials", 400);
@@ -54,15 +61,53 @@ export class AuthService {
   }
 
   async refreshTokens(token: string): Promise<JwtTokens> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const { sub: email } = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
       });
-      const user = await this.userRepository.findOneOrFail({ where: { email } });
 
-      return this.getTokens(user);
+      const validTokens = await queryRunner.manager.find(RefreshToken, {
+        where: {
+          user: { id: payload.sub },
+          expiresAt: MoreThan(new Date()),
+          // createdAt: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)), // Optional: Tokens issued in last 30 days
+        },
+      });
+      if (!validTokens.length) {
+        throw new HttpException("Invalid credentials", 400);
+      }
+
+      // find matching refresh token
+      const matchedToken = await Promise.all(
+        validTokens.map(async (storedToken) => ({
+          token: storedToken,
+          isMatch: await compare(token, storedToken.token),
+        })),
+      ).then((results) => results.find((r) => r.isMatch)?.token);
+
+      if (!matchedToken) {
+        throw new HttpException("Invalid credentials", 400);
+      }
+
+      const user = await this.userRepository.findOneOrFail({ where: { id: payload.sub } });
+
+      // delete only matched token
+      await queryRunner.manager.delete(RefreshToken, { id: matchedToken.id });
+
+      // issue new tokens
+      const tokens = await this.getTokens(user, queryRunner);
+      await queryRunner.commitTransaction();
+
+      return tokens;
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       throw new HttpException("Invalid credentials", 400);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -70,7 +115,7 @@ export class AuthService {
     return hash(password, 10);
   }
 
-  private async getTokens(user: User): Promise<JwtTokens> {
+  private async getTokens(user: User, queryRunner?: QueryRunner): Promise<JwtTokens> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: user.id, role: user.role },
@@ -87,6 +132,26 @@ export class AuthService {
         },
       ),
     ]);
+
+    const expirationTime = new Date();
+    expirationTime.setSeconds(
+      expirationTime.getSeconds() +
+        parseInt(this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRATION") ?? "3600"),
+    );
+
+    const hashedToken = await hash(refreshToken, 10);
+
+    const refreshTokenEntity = this.refreshTokenRepository.create({
+      token: hashedToken,
+      user,
+      expiresAt: expirationTime,
+    });
+
+    if (queryRunner) {
+      await queryRunner.manager.save(refreshTokenEntity);
+    } else {
+      await this.refreshTokenRepository.save(refreshTokenEntity);
+    }
 
     return { accessToken, refreshToken };
   }

@@ -49,7 +49,7 @@ export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
       );
 
       if (!ownershipData) {
-        throw new HttpException("Ownership metadata missing", HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
       }
 
       const { entity, userField } = ownershipData;
@@ -62,7 +62,7 @@ export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
       });
 
       if (!resource) {
-        throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
+        throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
       }
 
       // Check if user has required role
@@ -72,7 +72,7 @@ export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
       }
 
       // Allow if user owns the resource
-      return resource[userField].email === user.sub;
+      return resource[userField].id === user.sub;
     } catch (error) {
       throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
     }
