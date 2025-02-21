@@ -32,7 +32,6 @@ export class RecipeController {
   @UseGuards(AccessTokenGuard)
   @Post()
   async createRecipe(@Body() recipeDto: RecipeDto, @Request() req) {
-    console.log(`req-user ${JSON.stringify(req.user)}`);
     const { sub } = req.user;
     return await this.recipeService.createRecipe(recipeDto, sub);
   }

@@ -36,14 +36,14 @@ export class RecipeService {
   //   }
   // }
 
-  async createRecipe(recipeDto: RecipeDto, userEmail: string): Promise<void> {
+  async createRecipe(recipeDto: RecipeDto, userId: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const user = await queryRunner.manager.findOneOrFail(User, {
-        where: { email: userEmail },
+        where: { id: userId },
       });
 
       const newRecipe = queryRunner.manager.create(Recipe, { ...recipeDto, user });
