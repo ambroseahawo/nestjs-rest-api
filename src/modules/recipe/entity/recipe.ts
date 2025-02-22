@@ -19,6 +19,9 @@ export class Recipe {
   @Column()
   description: string;
 
+  @Column()
+  image?: string;
+
   @OneToMany(() => Ingredient, (ingredient) => ingredient.recipe, {
     cascade: ["insert"],
   })
