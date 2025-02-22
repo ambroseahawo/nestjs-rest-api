@@ -6,3 +6,10 @@
 
 docker-compose up
 sudo lsof -i :5432
+
+<!-- prod docker cmds -->
+
+docker build --target prod -t recipe-api:latest .
+docker-compose up postgres
+docker network ls
+docker run --network=nestjs-rest-api_app -p 8000:8000 -it recipe-api
