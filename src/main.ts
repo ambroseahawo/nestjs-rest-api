@@ -6,6 +6,7 @@ import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 
 import { AllExceptionsFilter } from "@common/global-filters/all-exceptions.filter";
 import { AppModule } from "@src/app.module";
+import { runMigrations } from "@src/migrations/migration-runner";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,8 @@ async function bootstrap() {
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost, configService));
+
+  await runMigrations();
   await app.listen(port as string);
 }
 bootstrap().catch((err) => {
