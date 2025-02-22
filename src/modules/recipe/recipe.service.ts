@@ -5,12 +5,14 @@ import { DataSource, QueryRunner, Repository } from "typeorm";
 import { User } from "@modules/auth/entity/user";
 import { IngredientDto, RecipeDto } from "@modules/recipe/dto/recipe.dto";
 import { Ingredient, Recipe } from "@modules/recipe/entity/recipe";
+import { S3Service } from "@modules/s3/s3.service";
 
 @Injectable()
 export class RecipeService {
   constructor(
     @InjectRepository(Recipe) private recipeRepository: Repository<Recipe>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    private s3Service: S3Service,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -198,5 +200,12 @@ export class RecipeService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async addFileToRecipe(file: Express.Multer["File"], id: string) {
+    const bucketKey = `${file.fieldname}${Date.now()}`;
+    const fileUrl = await this.s3Service.uploadFile(file, bucketKey);
+
+    await this.recipeRepository.update({ id }, { image: fileUrl });
   }
 }

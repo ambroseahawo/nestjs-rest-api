@@ -8,17 +8,20 @@ import {
   Patch,
   Post,
   Request,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 import { Ownership } from "@modules/auth/decorators/ownership";
 import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
 import { AccessTokenGuard } from "@modules/auth/guard/access-token.guard";
 import { OwnershipGuard } from "@modules/auth/guard/authorization.guard";
+import { RecipeDto, UpdateDescriptionDto } from "@modules/recipe/dto/recipe.dto";
 import { Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeService } from "@modules/recipe/recipe.service";
-import { RecipeDto, UpdateDescriptionDto } from "./dto/recipe.dto";
 
 @Controller("recipe")
 export class RecipeController {
@@ -66,5 +69,16 @@ export class RecipeController {
   @Delete("/:id")
   async deleteRecipe(@Param("id", new ParseUUIDPipe()) id: string) {
     return await this.recipeService.deleteRecipe(id);
+  }
+
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
+  @UseInterceptors(FileInterceptor("file"))
+  @Post("/:id/upload-file")
+  async addImageToRecipe(
+    @UploadedFile() file: Express.Multer["File"],
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    await this.recipeService.addFileToRecipe(file, id);
   }
 }

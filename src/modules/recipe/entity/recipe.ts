@@ -19,7 +19,7 @@ export class Recipe {
   @Column()
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   image?: string;
 
   @OneToMany(() => Ingredient, (ingredient) => ingredient.recipe, {
