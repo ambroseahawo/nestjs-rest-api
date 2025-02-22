@@ -45,7 +45,7 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ["id", "email", "password"],
+      select: ["id", "email", "role", "password"],
     });
 
     if (!user) {

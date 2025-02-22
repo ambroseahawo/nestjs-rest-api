@@ -8,7 +8,7 @@ import { UserRole } from "@modules/auth/entity/user";
 
 @Injectable()
 export class RoleGuard implements CanActivate {
-  constructor(protected reflector: Reflector) {}
+  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLE_KEY, [
@@ -16,7 +16,7 @@ export class RoleGuard implements CanActivate {
       context.getClass(),
     ]);
     if (!requiredRoles || requiredRoles.length === 0) {
-      return true; // No role restriction
+      return false; // No role restriction
     }
     const { user } = context.switchToHttp().getRequest();
     return requiredRoles.includes(user.role);
@@ -24,13 +24,11 @@ export class RoleGuard implements CanActivate {
 }
 
 @Injectable()
-export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
+export class OwnershipGuard<T extends ObjectLiteral> {
   constructor(
-    reflector: Reflector,
+    private reflector: Reflector,
     private dataSource: DataSource,
-  ) {
-    super(reflector);
-  }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
@@ -65,14 +63,23 @@ export class OwnershipGuard<T extends ObjectLiteral> extends RoleGuard {
         throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
       }
 
-      // Check if user has required role
-      const hasRoleAccess = await super.canActivate(context);
-      if (hasRoleAccess) {
+      // Check ownership
+      if (resource[userField]?.id === user.sub) {
         return true;
       }
 
-      // Allow if user owns the resource
-      return resource[userField].id === user.sub;
+      // Check role only if roles are explicitly defined
+      const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLE_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+
+      if (requiredRoles && requiredRoles.length > 0) {
+        return requiredRoles.includes(user.role);
+      }
+
+      // If no ownership and no explicit roles, deny access
+      return false;
     } catch (error) {
       throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
     }
