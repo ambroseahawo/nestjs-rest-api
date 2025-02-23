@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: app
     networks:
       - app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
   adminer:
     image: adminer
     restart: always
@@ -36,3 +38,6 @@ services:
 
 networks:
   app:
+
+volumes:
+  postgres_data:
