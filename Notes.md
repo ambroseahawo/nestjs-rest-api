@@ -4,6 +4,12 @@
 
 - To create typeorm migrations;- MIGRATION_NAME=<migration-name> npm run migration:create
 
+<!-- rebuild -->
+
+docker-compose down
+docker-compose build --no-cache
+docker-compose up
+
 docker-compose up
 sudo lsof -i :5432
 
