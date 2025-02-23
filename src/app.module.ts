@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { validate } from "@config/env.validation";
@@ -13,7 +15,6 @@ import { RecipeModule } from "@modules/recipe/recipe.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate }),
-    RecipeModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -30,8 +31,25 @@ import { RecipeModule } from "@modules/recipe/recipe.module";
       inject: [ConfigService],
     }),
     AuthModule,
+    RecipeModule,
+    ThrottlerModule.forRootAsync({
+      useFactory: (configService: ConfigService): ThrottlerModuleOptions => ({
+        throttlers: [
+          {
+            ttl: Number(configService.getOrThrow("UPLOAD_RATE_TTL")),
+            limit: Number(configService.getOrThrow("UPLOAD_RATE_LIMIT")),
+          },
+        ],
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
