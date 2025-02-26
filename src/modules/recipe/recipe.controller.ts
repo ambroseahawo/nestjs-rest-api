@@ -18,11 +18,11 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 
+import { AccessTokenGuard } from "@/src/common/guard/access-token.guard";
+import { OwnershipGuard } from "@/src/common/guard/authorization.guard";
 import { Ownership } from "@modules/auth/decorators/ownership";
 import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
-import { AccessTokenGuard } from "@modules/auth/guard/access-token.guard";
-import { OwnershipGuard } from "@modules/auth/guard/authorization.guard";
 import { IngredientDto, RecipeDto, UpdateDescriptionDto } from "@modules/recipe/dto/recipe.dto";
 import { Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeService } from "@modules/recipe/recipe.service";
