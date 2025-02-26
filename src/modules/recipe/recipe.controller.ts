@@ -20,11 +20,12 @@ import { Throttle } from "@nestjs/throttler";
 
 import { AccessTokenGuard } from "@/src/common/guard/access-token.guard";
 import { OwnershipGuard } from "@/src/common/guard/authorization.guard";
-import { Ownership } from "@modules/auth/decorators/ownership";
+import { OwnershipGuard as MultiEntityOwnership } from "@/src/common/guard/multi-entity-ownership.guard";
+import { Ownership, OwnershipCheck } from "@modules/auth/decorators/ownership";
 import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
 import { IngredientDto, RecipeDto, UpdateDescriptionDto } from "@modules/recipe/dto/recipe.dto";
-import { Recipe } from "@modules/recipe/entity/recipe";
+import { Ingredient, Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeService } from "@modules/recipe/recipe.service";
 
 @Controller("recipe")
@@ -74,6 +75,19 @@ export class RecipeController {
     @Param("id", new ParseUUIDPipe()) id: string,
   ) {
     return await this.recipeService.updateRecipeDescription(id, description);
+  }
+
+  @OwnershipCheck(
+    { entity: Recipe, paramKey: "recipeId", ownerField: "user", relations: ["user"] },
+    { entity: Ingredient, paramKey: "ingredientId", ownerField: "recipe", relations: ["recipe"] },
+  )
+  @UseGuards(AccessTokenGuard, MultiEntityOwnership)
+  @Patch("/:recipeId/ingredients/:ingredientId")
+  async updateIngredient(
+    @Param("recipeId") recipeId: string,
+    @Param("ingredientId") ingredientId: string,
+  ) {
+    // return this.recipeService.updateIngredient(recipeId, ingredientId);
   }
 
   @Role(UserRole.ADMIN)
