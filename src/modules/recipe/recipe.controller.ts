@@ -84,10 +84,11 @@ export class RecipeController {
   @UseGuards(AccessTokenGuard, MultiEntityOwnership)
   @Patch("/:recipeId/ingredients/:ingredientId")
   async updateIngredient(
+    @Body() ingredientDto: Partial<IngredientDto>,
     @Param("recipeId") recipeId: string,
     @Param("ingredientId") ingredientId: string,
   ) {
-    // return this.recipeService.updateIngredient(recipeId, ingredientId);
+    return await this.recipeService.updateIngredient(recipeId, ingredientId, ingredientDto);
   }
 
   @Role(UserRole.ADMIN)

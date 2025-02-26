@@ -2,6 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nes
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, QueryRunner, Repository } from "typeorm";
 
+import { sanitizeUpdateData } from "@/src/common/utils/sanitizeDTO";
 import { User } from "@modules/auth/entity/user";
 import { IngredientDto, RecipeDto } from "@modules/recipe/dto/recipe.dto";
 import { Ingredient, Recipe } from "@modules/recipe/entity/recipe";
@@ -92,6 +93,31 @@ export class RecipeService {
       // if (!ingredients.length) {
       // }
       return ingredients;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException("Bad Request");
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateIngredient(
+    recipeId: string,
+    ingredientId: string,
+    ingredientDto: Partial<IngredientDto>,
+  ): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Filter out empty or whitespace-only fields
+      const updateData = sanitizeUpdateData(ingredientDto);
+      console.log(`updateData -> ${JSON.stringify(updateData)}`);
+
+      await queryRunner.manager.update(Ingredient, ingredientId, { ...updateData });
+
+      await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException("Bad Request");
