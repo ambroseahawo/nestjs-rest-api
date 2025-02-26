@@ -23,7 +23,7 @@ import { Role } from "@modules/auth/decorators/role";
 import { UserRole } from "@modules/auth/entity/user";
 import { AccessTokenGuard } from "@modules/auth/guard/access-token.guard";
 import { OwnershipGuard } from "@modules/auth/guard/authorization.guard";
-import { RecipeDto, UpdateDescriptionDto } from "@modules/recipe/dto/recipe.dto";
+import { IngredientDto, RecipeDto, UpdateDescriptionDto } from "@modules/recipe/dto/recipe.dto";
 import { Recipe } from "@modules/recipe/entity/recipe";
 import { RecipeService } from "@modules/recipe/recipe.service";
 
@@ -46,6 +46,23 @@ export class RecipeController {
   @Get("/:id")
   async getRecipe(@Param("id", new ParseUUIDPipe()) id: string) {
     return await this.recipeService.getRecipe(id);
+  }
+
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
+  @Post("/:id/ingredients")
+  async addIngredient(
+    @Body() ingredientDto: IngredientDto,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return await this.recipeService.addIngredient(id, ingredientDto);
+  }
+
+  @Ownership(Recipe, "user")
+  @UseGuards(AccessTokenGuard, OwnershipGuard)
+  @Get("/:id/ingredients")
+  async getIngredients(@Param("id", new ParseUUIDPipe()) id: string) {
+    return await this.recipeService.getIngredients(id);
   }
 
   @Role(UserRole.ADMIN)

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, QueryRunner, Repository } from "typeorm";
 
@@ -55,6 +55,46 @@ export class RecipeService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async addIngredient(id: string, ingredientDto: IngredientDto): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.findOneOrFail(Recipe, {
+        where: { id },
+      });
+
+      const newIngredient = queryRunner.manager.create(Ingredient, { ...ingredientDto, recipe });
+      await queryRunner.manager.save(newIngredient);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException("Bad Request");
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getIngredients(id: string): Promise<Ingredient[]> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const ingredients = await queryRunner.manager.find(Ingredient, { where: { recipe: { id } } });
+      // if (!ingredients.length) {
+      // }
+      return ingredients;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException("Bad Request");
     } finally {
       await queryRunner.release();
     }
