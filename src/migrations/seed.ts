@@ -37,7 +37,8 @@ async function seed() {
   await userRepo.delete({});
 
   for (let i = 0; i < 50; i++) {
-    const hashedPassword = await hash(faker.internet.password(), 10); // Hash the password
+    const defaultPassword = configService.get<string>("DEFAULT_USER_PASS")!;
+    const hashedPassword = await hash(defaultPassword, 10); // Hash the password
 
     const user = await userRepo.save(
       userRepo.create({
