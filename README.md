@@ -51,13 +51,12 @@ $ npm run start:prod
 docker-compose down # Remove existing containers
 docker-compose build --no-cache # Remove existing containers
 
-docker-compose --profile seed up # run seed data
-docker-compose run --rm seed # run seed data
+docker-compose --env-file .env --profile seed up # run seed data
+docker-compose --env-file .env run --rm seed # run seed data
 
 docker-compose down -v # Remove existing containers and volumes
-docker-compose up --build # Rebuild and start the containers
-docker-compose up # Start the containers
-docker-compose run --rm seed # Run the seed script
+docker-compose --env-file .env up --build # Rebuild and start the containers
+docker-compose --env-file .env up # Start the containers
 ```
 
 ## Run tests
