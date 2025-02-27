@@ -32,6 +32,7 @@ import { RecipeService } from "@modules/recipe/recipe.service";
 export class RecipeController {
   constructor(private recipeService: RecipeService) {}
 
+  // get recipe related to user
   @Get()
   async getRecipes() {
     return await this.recipeService.getRecipes();
@@ -89,6 +90,18 @@ export class RecipeController {
     @Param("ingredientId") ingredientId: string,
   ) {
     return await this.recipeService.updateIngredient(recipeId, ingredientId, ingredientDto);
+  }
+
+  // delete ingredient
+  @UseGuards(AccessTokenGuard)
+  @Delete("/:recipeId/ingredients/:ingredientId")
+  async deleteIngredient(
+    @Param("recipeId") recipeId: string,
+    @Param("ingredientId") ingredientId: string,
+    @Request() req,
+  ) {
+    const { sub } = req.user;
+    return await this.recipeService.deleteIngredient(recipeId, ingredientId, sub);
   }
 
   @Role(UserRole.ADMIN)

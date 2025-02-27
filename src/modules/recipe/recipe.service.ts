@@ -1,4 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, QueryRunner, Repository } from "typeorm";
 
@@ -113,13 +120,52 @@ export class RecipeService {
     try {
       // Filter out empty or whitespace-only fields
       const updateData = sanitizeUpdateData(ingredientDto);
-      console.log(`updateData -> ${JSON.stringify(updateData)}`);
 
       await queryRunner.manager.update(Ingredient, ingredientId, { ...updateData });
 
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      throw new BadRequestException("Bad Request");
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async deleteIngredient(recipeId: string, ingredientId: string, userId: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const ingredientRepo = queryRunner.manager.getRepository(Ingredient);
+      const ingredient = await ingredientRepo.findOne({
+        where: { id: ingredientId, recipe: { id: recipeId } },
+        relations: ["recipe", "recipe.user"],
+      });
+
+      if (!ingredient) {
+        throw new NotFoundException("Ingredient not found or doesn't belong to recipe");
+      }
+
+      const userRepo = queryRunner.manager.getRepository(User);
+      const user = await userRepo.findOne({
+        where: { id: userId },
+      });
+
+      // check ownership
+      if (ingredient.recipe.user.id !== user?.id) {
+        throw new ForbiddenException("Forbidden!");
+      }
+
+      await ingredientRepo.remove(ingredient);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new BadRequestException("Bad Request");
     } finally {
       await queryRunner.release();
@@ -260,7 +306,6 @@ export class RecipeService {
       await queryRunner.manager.remove(Recipe, recipe);
       await queryRunner.commitTransaction();
     } catch (error) {
-      console.log(error);
       await queryRunner.rollbackTransaction();
       throw new HttpException("Bad Request", HttpStatus.NOT_FOUND);
     } finally {
