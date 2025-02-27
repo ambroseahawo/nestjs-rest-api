@@ -33,9 +33,11 @@ export class RecipeController {
   constructor(private recipeService: RecipeService) {}
 
   // get recipe related to user
+  @UseGuards(AccessTokenGuard)
   @Get()
-  async getRecipes() {
-    return await this.recipeService.getRecipes();
+  async getRecipes(@Request() req) {
+    const { sub } = req.user;
+    return await this.recipeService.getRecipes(sub);
   }
 
   @UseGuards(AccessTokenGuard)

@@ -24,8 +24,10 @@ export class RecipeService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getRecipes(): Promise<Recipe[]> {
-    return this.recipeRepository.find();
+  async getRecipes(userId: string): Promise<Recipe[]> {
+    // return this.recipeRepository.find();
+    const recipe = await this.recipeRepository.find({ where: { user: { id: userId } } });
+    return recipe;
   }
 
   async getRecipe(id: string): Promise<Recipe> {
