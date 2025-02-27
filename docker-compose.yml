@@ -35,6 +35,29 @@ services:
     volumes:
       - .:/app:delegated
       - /app/node_modules
+  seed:
+    profiles: ["seed"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    working_dir: /app
+    networks:
+      - app
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_NAME: app
+      NODE_ENV: development
+      DB_LOGGING: True
+    command: [sh, -c, 'npm run seed']
+    volumes:
+      - .:/app:delegated
+      - /app/node_modules
 
 networks:
   app:
