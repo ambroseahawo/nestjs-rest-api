@@ -45,6 +45,21 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Docker cmds
+
+```bash
+docker-compose down # Remove existing containers
+docker-compose build --no-cache # Remove existing containers
+
+docker-compose --profile seed up # run seed data
+docker-compose run --rm seed # run seed data
+
+docker-compose down -v # Remove existing containers and volumes
+docker-compose up --build # Rebuild and start the containers
+docker-compose up # Start the containers
+docker-compose run --rm seed # Run the seed script
+```
+
 ## Run tests
 
 ```bash
